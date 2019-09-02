@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    android:background="@drawable/back"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/Status"
+            android:layout_width="80dp"
+            android:layout_height="50dp"
+            android:textSize="20dp"
+            android:text="Status:" />
+
+        <TextView
+            android:id="@+id/Status_status"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textSize="15dp"
+            android:textColor="#00FF00"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#A20855" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom">
+        <TextView
+            android:id="@+id/space_1"
+            android:layout_width="wrap_content"
+            android:layout_height="250dp"
+            android:layout_weight="1"/>
+    </LinearLayout>
+    <TextView
+        android:id="@+id/space_2"
+        android:layout_width="200px"
+        android:layout_height="60px"
+        android:text="Loading..."
+        android:layout_gravity="center"/>
+
+    <ProgressBar
+        android:id="@+id/progressbar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="980px"
+        android:layout_height="60dp"
+        android:indeterminate="true"
+        tools:visibility="visible"
+        android:layout_marginLeft="50px"
+        android:layout_marginRight="50px"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom">
+        <TextView
+            android:id="@+id/space_3"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom">
+
+        <Button
+            android:id="@+id/transaction"
+            android:layout_width="980px"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="50px"
+            android:layout_marginRight="50px"
+            android:background="@drawable/rectangle_btn"
+            android:text="transaction"
+            android:enabled="false"
+            android:visibility="invisible"/>
+
+    </LinearLayout>
+    <Button
+        android:id="@+id/test"
+        android:layout_width="980px"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:layout_marginLeft="50px"
+        android:layout_marginRight="50px"
+        android:background="@drawable/rectangle_btn"
+        android:text="TEST" />
+</LinearLayout>
+
+
+
+
+

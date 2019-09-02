@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:overScrollMode="never"
+    android:padding="15dp"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/TransactionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Transaction"
+            android:gravity="center"
+            android:textSize="30dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/holo_blue_dark"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/Balance"
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:textSize="15dp"
+                android:text="Balance:" />
+            <TextView
+                android:id="@+id/Balance_word"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:textSize="15dp"
+                android:enabled="false"
+                android:textColor="#FF3333"/>
+            <Button
+                android:id="@+id/Balance_reset"
+                android:background="@drawable/bg_round_button"
+                android:contentDescription="Round Button"
+                android:layout_width="65dp"
+                android:layout_height="match_parent"
+                android:text="Update"
+                android:textSize="10dp" />
+
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/holo_blue_dark"/>
+        <TextView
+            android:id="@+id/Receiver_name"
+            android:layout_width="71dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Receiver:" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/Receiver_addr"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="15dp"
+                android:enabled="false"/>
+
+            <Button
+                android:id="@+id/qrcodebtn"
+                android:background="@drawable/bg_round_button"
+                android:contentDescription="Round Button"
+                android:layout_width="65dp"
+                android:layout_height="match_parent"
+                android:drawableBottom="@android:drawable/ic_menu_camera"
+                android:textSize="10dp" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/Value_name"
+                android:layout_width="71dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Value:" />
+            <EditText
+                android:id="@+id/Value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+            <TextView
+                android:id="@+id/Gas_name"
+                android:layout_width="71dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Gas:" />
+            <EditText
+                android:id="@+id/Gas"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                />
+            <TextView
+                android:id="@+id/GasPrice_name"
+                android:layout_width="71dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="GasPrice:" />
+            <EditText
+                android:id="@+id/GasPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+            <TextView
+                android:id="@+id/Space_1"
+                android:layout_width="71dp"
+                android:layout_height="70dp"
+                android:layout_weight="1" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/holo_blue_dark"/>
+            <TextView
+                android:id="@+id/Space_2"
+                android:layout_width="71dp"
+                android:layout_height="10dp"
+                android:layout_weight="1" />
+            <Button
+                android:id="@+id/CheckBtn"
+                android:layout_width="900px"
+                android:layout_height="wrap_content"
+                android:text="Check"
+                android:layout_marginLeft="50px"
+                android:gravity="center"
+                android:layout_marginRight="50px"
+                android:textSize="10dp"
+                android:enabled="false"
+                android:background="@drawable/rectangle_btn"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/Space_3"
+            android:layout_width="71dp"
+            android:layout_height="10dp"
+            android:layout_weight="1" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/holo_blue_dark"/>
+        <TextView
+            android:id="@+id/Space_4"
+            android:layout_width="71dp"
+            android:layout_height="10dp"
+            android:layout_weight="1" />
+        <Button
+            android:id="@+id/SendBtn"
+            android:layout_width="900px"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50px"
+            android:layout_marginRight="50px"
+            android:gravity="center"
+            android:text="Send"
+            android:textSize="10dp"
+            android:enabled="false"
+            android:background="@drawable/rectangle_btn"/>
+        <TextView
+            android:id="@+id/Space_5"
+            android:layout_width="71dp"
+            android:layout_height="10dp"
+            android:layout_weight="1" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/holo_blue_dark"/>
+    </LinearLayout>
+</ScrollView>
