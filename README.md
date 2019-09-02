@@ -1,5 +1,9 @@
 冷錢包的加密與應用-手機APP
 
+加密使用:
+
+https://github.com/eric781ctf/Android-ecryption
+
 參考內容:
 
 https://github.com/xiaoyaoyou1212/BLE
