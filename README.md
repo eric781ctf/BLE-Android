@@ -1,1 +1,13 @@
-參考自 [https://github.com/xiaoyaoyou1212/BLE](https://github.com/xiaoyaoyou1212/BLE)
+冷錢包的加密與應用-手機APP
+
+加密使用:
+
+https://github.com/eric781ctf/Android-ecryption
+
+參考內容:
+
+https://github.com/xiaoyaoyou1212/BLE
+
+https://www.cnblogs.com/arix04/archive/2009/06/26/1511839.html
+
+https://developer.android.com/reference/java/net/URL.html#openConnection()
