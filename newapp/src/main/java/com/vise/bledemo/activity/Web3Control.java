@@ -20,7 +20,7 @@ public class Web3Control {
     public static void Delete_Token_onWeb3(String priv_hash){
         URL url = null;
         try {
-            url = new URL("http://192.168.50.20:6000/"+priv_hash);
+            url = new URL("http://192.168.50.20:5000/"+priv_hash);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

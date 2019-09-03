@@ -100,28 +100,53 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
             <TextView
                 android:id="@+id/Gas_name"
                 android:layout_width="71dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Gas:" />
-            <EditText
-                android:id="@+id/Gas"
-                android:layout_height="wrap_content"
+                <TextView
+                    android:id="@+id/Gas_Value"
+                    android:layout_width="71dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
+            <SeekBar
+                android:id="@+id/Gas_seekBar"
                 android:layout_width="match_parent"
-                />
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:max="100000"
+                android:min="0"
+                android:progress="10000"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
             <TextView
                 android:id="@+id/GasPrice_name"
                 android:layout_width="71dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="GasPrice:" />
-            <EditText
-                android:id="@+id/GasPrice"
+                <TextView
+                    android:id="@+id/GasPrice_Value"
+                    android:layout_width="71dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
+            <SeekBar
+                android:id="@+id/GasPrice_seekBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                />
+                android:layout_margin="15dp"
+                android:max="1000000"
+                android:min="0"
+                android:progress="10000"/>
+
             <TextView
                 android:id="@+id/Space_1"
                 android:layout_width="71dp"

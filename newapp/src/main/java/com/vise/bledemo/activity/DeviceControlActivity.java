@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,9 +40,9 @@ public class DeviceControlActivity extends AppCompatActivity {
     private TextView balance_title;
     private TextView balance;
     private TextView ReceiverAddress;
+    private TextView gasPricevalue;
+    private TextView gasvalue;
     private EditText mValue;
-    private EditText mGas;
-    private EditText mGasPrice;
     private Button qrbtn;
     private Button CheckBtn;
     private Button SendBtn;
@@ -53,6 +54,8 @@ public class DeviceControlActivity extends AppCompatActivity {
     private String Address;
     private String Token;
     private String priv_hash;
+    private SeekBar Gas_Seekbar;
+    private SeekBar GasPrice_Seekbar;
 
     UUID ServiceUUID = UUID.fromString("00001823-0000-1000-8000-00805f9b34fb"); //1823
     UUID URI_UUID = UUID.fromString("00002ab6-0000-1000-8000-00805f9b34fb");    //2AB6
@@ -62,9 +65,9 @@ public class DeviceControlActivity extends AppCompatActivity {
     UUID Body_UUID = UUID.fromString("00002ab9-0000-1000-8000-00805f9b34fb");//2AB9
     UUID Status_UUID = UUID.fromString("00002abb-0000-1000-8000-00805f9b34fb");//2ABB  讀取若為200則成功
 
-    URI Balance_Web3 = URI.create("http://192.168.50.20:6000/balance");
-    URI Nonce_Web3 = URI.create("http://192.168.50.20:6000/nonce");
-    URI transaction_Web3 = URI.create("http://192.168.50.20:6000/transaction");
+    URI Balance_Web3 = URI.create("http://192.168.50.20:5000/balance");
+    URI Nonce_Web3 = URI.create("http://192.168.50.20:5000/nonce");
+    URI transaction_Web3 = URI.create("http://192.168.50.20:5000/transaction");
 
     static int i;
 
@@ -97,7 +100,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     protected void onDestroy(){
         super.onDestroy();
         BluetoothDeviceManager.getInstance().disconnect(mDevice);
-    }
+    }//關閉頁面後斷開與 BLE 的連線
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -120,25 +123,28 @@ public class DeviceControlActivity extends AppCompatActivity {
         KEY = bundle.getByteArray("KEY");
         IV = bundle.getByteArray("IV");
         System.out.println("Get Address :"+Address+"  Get priv_hash :"+priv_hash+"   Get Token :"+Token);
-        //Address_encrypted = Do_encrypt(Address);
+
+        //先將Address加密 稍後要 post 給 Server
+        encrypted_ADDRESS_Thread.start();
         try {
-            Address_encrypted = security.Encrypt(Address,KEY,IV);
-            System.out.println("Address_encrypted : "+Address_encrypted);
-        } catch (Exception e) {
+            encrypted_ADDRESS_Thread.join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         //連線設備
         while (!BluetoothDeviceManager.getInstance().isConnected(mDevice)){
             BluetoothDeviceManager.getInstance().connect(mDevice);
         }
-        Do_txn_URI_Thread.start();
-        get_Balance_Thread.start();
+
+        Do_txn_URI_Thread.start();//進入頁面先傳送 ethertxn 的 URI 給 BLE
+        get_Balance_Thread.start();//向 Web3 Server 取得 Balance
         try {
             get_Balance_Thread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        get_Nonce_Thread.start();
+        get_Nonce_Thread.start();//向 Web3 Server 取得 Nonce
         init();
     }
 
@@ -182,16 +188,19 @@ public class DeviceControlActivity extends AppCompatActivity {
     }
 
     private void init() {
-        Balance_update = findViewById(R.id.Balance_reset);
+        //TextView
         balance_title = findViewById(R.id.Balance);
         balance = findViewById(R.id.Balance_word);
-        //TextView
+        gasvalue = findViewById(R.id.Gas_Value);
+        gasPricevalue = findViewById(R.id.GasPrice_Value);
         ReceiverAddress = findViewById(R.id.Receiver_addr);
         //EditText
         mValue = findViewById(R.id.Value);
-        mGas = findViewById(R.id.Gas);
-        mGasPrice = findViewById(R.id.GasPrice);
+        //SeekBar
+        Gas_Seekbar = findViewById(R.id.Gas_seekBar);
+        GasPrice_Seekbar = findViewById(R.id.GasPrice_seekBar);
         //Button
+        Balance_update = findViewById(R.id.Balance_reset);
         qrbtn = findViewById(R.id.qrcodebtn);
         CheckBtn = findViewById(R.id.CheckBtn);
         SendBtn = findViewById(R.id.SendBtn);
@@ -205,6 +214,42 @@ public class DeviceControlActivity extends AppCompatActivity {
             }
         });
         final Activity Device_Control_transaction = this;
+
+        Gas_Seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                String x = String.valueOf(progress);
+                gasvalue.setText(x);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });//拖曳條 控制 Gas
+
+        GasPrice_Seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                String t = String.valueOf(progress);
+                gasPricevalue.setText(t);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });//拖曳條 控制 Gas Price
+
         /**掃描QRCode 按鍵*/
         qrbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,49 +270,65 @@ public class DeviceControlActivity extends AppCompatActivity {
             public void onClick(View v) {
                 CheckBtn.setEnabled(false);
                 mValue.setEnabled(false);
-                mGas.setEnabled(false);
-                mGasPrice.setEnabled(false);
-                /**將 Value Gas GasPrice 打包*/
-                VALUE_FOR_TXN = mValue.getText()+","+Nonce_encrypted+","+mGasPrice.getText()+","+mGas.getText();  //value nonce gasprice gas
-                ViseLog.i("Value for Txn : "+VALUE_FOR_TXN);
-                System.out.println(VALUE_FOR_TXN);
-                Do_txn_DATA_Thread.start();
-                try {
-                    Do_txn_DATA_Thread.join();
-                    middlePlace.delay(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                AlertDialog.Builder builder = new AlertDialog.Builder(DeviceControlActivity.this);
-                builder.setTitle("Remind");
-                builder.setMessage("Is the info correct?");
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        middlePlace.delay(1000);
-                        Do_txn_CTRL_Thread.start();
+                Gas_Seekbar.setEnabled(false);
+                GasPrice_Seekbar.setEnabled(false);
+                int a, b;
+                a = Integer.parseInt(gasvalue.getText().toString());
+                b = Integer.parseInt(gasPricevalue.getText().toString());
+                if (a == 0 || b == 0) {
+                    AlertDialog.Builder Info = new AlertDialog.Builder(DeviceControlActivity.this);
+                    Info.setTitle("Warning!");
+                    Info.setMessage("Gas or GasPrice can not be 0 !!!");
+                    Info.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Gas_Seekbar.setEnabled(true);
+                            GasPrice_Seekbar.setEnabled(true);
+                        }
+                    });
+                    AlertDialog TellInfo = Info.create();
+                    TellInfo.show();
+                } else{
+                        /**將 Value Gas GasPrice 打包*/
+                        VALUE_FOR_TXN = mValue.getText() + "," + Nonce + "," + gasPricevalue.getText() + "," + gasvalue.getText();  //value nonce gasprice gas
+                        ViseLog.i("Value for Txn : " + VALUE_FOR_TXN);
+                        System.out.println(VALUE_FOR_TXN);
+                        Do_txn_DATA_Thread.start();
                         try {
-                            Do_txn_CTRL_Thread.join();
+                            Do_txn_DATA_Thread.join();
+                            middlePlace.delay(500);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        SendBtn.setEnabled(true);
-                    }
-                });
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        /*CheckBtn.setEnabled(true);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(DeviceControlActivity.this);
+                        builder.setTitle("Remind");
+                        builder.setMessage("Is the info correct?");
+                        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            middlePlace.delay(1000);
+                            Do_txn_CTRL_Thread.start();
+                            try {
+                                Do_txn_CTRL_Thread.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            SendBtn.setEnabled(true);
+                        }
+                        });
+                        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        CheckBtn.setEnabled(true);
                         mValue.setEnabled(true);
-                        mGas.setEnabled(true);
-                        mGasPrice.setEnabled(true);
+                        Gas_Seekbar.setEnabled(true);
+                        GasPrice_Seekbar.setEnabled(true);
                         mValue.setText("");
-                        mGas.setText("");
-                        mGasPrice.setText("");*/
-                    }
-                });
-                AlertDialog dialog=builder.create();
-                dialog.show();
+                        }
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+                }
             }
         });
 
@@ -291,7 +352,38 @@ public class DeviceControlActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                next = new Intent(DeviceControlActivity.this,MainActivity.class);
+                if (ResultOfTransaction.equals("Successfully")){
+                    AlertDialog.Builder Success = new AlertDialog.Builder(DeviceControlActivity.this);
+                    Success.setTitle("Transaction Succeed");
+                    Success.setMessage("This transaction is finished\nReturn to Home page");
+                    Success.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            BluetoothDeviceManager.getInstance().disconnect(mDevice);
+                            next = new Intent(DeviceControlActivity.this,middlePlace.class);
+                            next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
+                            startActivity(next);
+                        }
+                    });
+                    AlertDialog TellInfo = Success.create();
+                    TellInfo.show();
+                }else{
+                    System.out.println("Failed Transaction");
+                    AlertDialog.Builder Failed = new AlertDialog.Builder(DeviceControlActivity.this);
+                    Failed.setTitle("Transaction Failed");
+                    Failed.setMessage("This transaction happened some wrong\nPlease try again\nReturn to Home page");
+                    Failed.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            BluetoothDeviceManager.getInstance().disconnect(mDevice);
+                            next = new Intent(DeviceControlActivity.this,middlePlace.class);
+                            next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
+                            startActivity(next);
+                        }
+                    });
+                    AlertDialog TellInfo = Failed.create();
+                    TellInfo.show();
+                }
             }
         });
         CheckBtn.setEnabled(true);
@@ -299,11 +391,11 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     /**函式*/
     public void Check_EditText(){
-        if (mValue.getText().equals(null) && mGas.getText().equals(null) && mGasPrice.getText().equals(null)){
+        if (mValue.getText().equals(null) && gasvalue.getText().equals(null) && gasPricevalue.getText().equals(null)){
             System.out.println("No word in editbox");
             Check_EditText();
         }else{
-            System.out.println("mValue : "+mValue.getText()+"\n mGas : "+mGas.getText()+"\n mGasPrice : "+mGasPrice.getText());
+            System.out.println("mValue : "+mValue.getText()+"\n mGas : "+gasvalue.getText()+"\n mGasPrice : "+gasPricevalue.getText());
             System.out.println("word are in Editbox");
             CheckBtn.setEnabled(true);
         }
@@ -313,7 +405,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         try {
             NonceJson.put("id",priv_hash);
             NonceJson.put("token",Token);
-            NonceJson.put("data",Address);
+            NonceJson.put("data",Address_encrypted);
             try {
                 Nonce_change = new StringEntity(NonceJson.toString());
             } catch (UnsupportedEncodingException e) {
@@ -332,7 +424,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         try {
             BalanceJson.put("id",priv_hash);
             BalanceJson.put("token",Token);
-            BalanceJson.put("data",Address);
+            BalanceJson.put("data",Address_encrypted);
             try {
                 Balance_change = new StringEntity(BalanceJson.toString());
             } catch (UnsupportedEncodingException e) {
@@ -352,7 +444,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         try {
             TransactionJson.put("id",priv_hash);
             TransactionJson.put("token",Token);
-            TransactionJson.put("data",TXN_TO_Web3);
+            TransactionJson.put("data",TXN_TO_Web3_encrypted);
             try {
                 TXN_change = new StringEntity(TransactionJson.toString());
             } catch (UnsupportedEncodingException e) {
@@ -366,41 +458,47 @@ public class DeviceControlActivity extends AppCompatActivity {
         System.out.println("Result : " + response_Web3);
         return response_Web3;
     }//將東西post 到Web3的函式
-    public static String byte2Hex(byte[] b) {
-        result = "";
-        for (i=0 ; i<b.length ; i++){
-            result += Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
-        }
-        return result;
-    }
 
     /**宣告執行緒*/
+    Thread encrypted_ADDRESS_Thread = new encrypted_address();
+
+    Thread get_Nonce_Thread = new get_Nonce_Thread_From_Web3();
+    Thread get_Balance_Thread = new get_Balance_From_Web3();
+
     Thread Do_txn_URI_Thread = new DOTXN_URI();
     Thread Do_txn_DATA_Thread = new DOTXN_DATA();
     Thread Do_txn_RW_Thread = new DOTXN_RW();
     Thread Do_txn_CTRL_Thread = new DOTXN_CTRL();
     Thread Do_txn_READ_Thread = new DOTXN_READ();
-    Thread Do_txn_ALL_Thread = new DOTXN_ALL();
-    Thread post_transaction = new POST_Transaction_To_Web3();
-    Thread get_Nonce_Thread = new get_Nonce_Thread_From_Web3();
-    Thread get_Balance_Thread = new get_Balance_From_Web3();
 
+    Thread post_transaction = new POST_Transaction_To_Web3();
 
     /**執行緒內容*/
+    class encrypted_address extends Thread{
+        public void run(){
+            try {
+                Address_encrypted = security.Encrypt(Address,KEY,IV);
+                System.out.println("Address_encrypted : "+Address_encrypted);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     class get_Balance_From_Web3 extends Thread{
         public void run(){
             Balance_encrypted = Get_Balance_from_Web3();
-            /*System.out.println("Get Balance encrypted : "+Balance_encrypted+" END");
+            System.out.println("Get Balance encrypted : "+Balance_encrypted+" <END>");
             try {
                 Balance = security.Decrypt(Balance_encrypted,KEY,IV);
-                System.out.println("Get Balance decrypted : "+Balance+" END");
+                System.out.println("Get Balance decrypted : "+Balance+" <END>");
             } catch (Exception e) {
                 e.printStackTrace();
-            }*/
+            }
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    balance.setText(Balance_encrypted);
+                    balance.setText(Balance);
                 }
             });
         }
@@ -408,13 +506,13 @@ public class DeviceControlActivity extends AppCompatActivity {
     class get_Nonce_Thread_From_Web3 extends Thread{
         public void run(){
             Nonce_encrypted = Get_Nonce_from_Web3();
-            System.out.println("Get Nonce_ecrypted : "+ Nonce_encrypted+" END");
-            /*try {
+            System.out.println("Get Nonce_encrypted : "+ Nonce_encrypted+" <END>");
+            try {
                 Nonce = security.Decrypt(Nonce_encrypted,KEY,IV);
-                System.out.println("Get Nonce_decrypted : "+ Nonce+" END");
+                System.out.println("Get Nonce_decrypted : "+ Nonce+" <END>");
             } catch (Exception e) {
                 e.printStackTrace();
-            }*/
+            }
         }
     }//取得Nonce 的執行緒
 
@@ -446,37 +544,12 @@ public class DeviceControlActivity extends AppCompatActivity {
             middlePlace.delay(1000);
             TXN_TO_Web3 = DeviceMirror.Get_value();
             System.out.println("TXN Get from BLE : "+TXN_TO_Web3);
-            /*try {
+            try {
                 TXN_TO_Web3_encrypted = security.Encrypt(TXN_TO_Web3,KEY,IV);
                 System.out.println("TXN to Web3 encrypted : " +TXN_TO_Web3_encrypted+" END");
             } catch (Exception e) {
                 e.printStackTrace();
-            }*/
-        }
-    }
-    class DOTXN_ALL extends Thread{
-        public void run(){
-            Do_txn_DATA_Thread.start();
-            try {
-                Do_txn_DATA_Thread.join();
-                System.out.println("Do txn DATA Thread Finish !");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
-            middlePlace.delay(1000);
-            Do_txn_CTRL_Thread.start();
-            try {
-                Do_txn_CTRL_Thread.join();
-                System.out.println("Do txn CTRL Thread Finish !");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            /*Do_txn_READ_Thread.start();
-            Do_txn_STORE_Thread.start();
-            while(!TXN_TO_Web3.equals("empty")){
-                Do_txn_READ_Thread.start();
-                Do_txn_STORE_Thread.start();
-            }*/
         }
     }
 
@@ -484,11 +557,6 @@ public class DeviceControlActivity extends AppCompatActivity {
         public void run(){
             System.out.println("In Thread : Transaction");
             ResultOfTransaction = post_transaction_to_Web3();
-            if (ResultOfTransaction.equals("Successfully")){
-                startActivity(next);
-            }else{
-                System.out.println("Failed Transaction");
-            }
         }
     }//將東西post到Web3的執行緒
 }

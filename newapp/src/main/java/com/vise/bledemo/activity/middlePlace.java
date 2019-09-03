@@ -59,7 +59,7 @@ public class middlePlace extends AppCompatActivity{
     static UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   Write    1:get  3:post
     UUID Body_UUID = UUID.fromString("00002ab9-0000-1000-8000-00805f9b34fb");   //2AB9   Read
     UUID Status_UUID = UUID.fromString("00002abb-0000-1000-8000-00805f9b34fb"); //2ABB   Read     讀取若為200則成功
-    URI Get_token_Web3 = URI.create("http://192.168.50.20:6000/get_token");
+    URI Get_token_Web3 = URI.create("http://192.168.50.20:5000/get_token");
 
     String Get2ABA = "1";
     String publickey = "showPublickey";
@@ -138,7 +138,6 @@ public class middlePlace extends AppCompatActivity{
                     bundle.putByteArray("IV",IV);
                     bundle.putByteArray("KEY",KEY);
                     next.putExtras(bundle);
-                    next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
                     startActivity(next);
                 }
             }
@@ -389,11 +388,11 @@ public class middlePlace extends AppCompatActivity{
                 TOKEN = getTOKEN();
             }
             System.out.println("Your TOKEN is : " + TOKEN);
-            /*String[] extra = TOKEN.split("xx");
+            String[] extra = TOKEN.split("xx");
             KEY = hexToBytes(extra[0]);
             System.out.println("Key is : "+ KEY+"  "+KEY.length);
             IV = hexToBytes(extra[1]);
-            System.out.println("IV is : "+IV+"  "+IV.length);*/
+            System.out.println("IV is : "+IV+"  "+IV.length);
         }
     }//向Web3 取得Token 的執行緒
 
