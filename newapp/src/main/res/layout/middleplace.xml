@@ -54,10 +54,11 @@
     </LinearLayout>
     <TextView
         android:id="@+id/space_2"
-        android:layout_width="200px"
-        android:layout_height="60px"
+        android:layout_width="250px"
+        android:layout_height="90px"
         android:text="Loading..."
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:textSize="70px"/>
 
     <ProgressBar
         android:id="@+id/progressbar"
@@ -102,15 +103,6 @@
             android:visibility="invisible"/>
 
     </LinearLayout>
-    <Button
-        android:id="@+id/test"
-        android:layout_width="980px"
-        android:layout_height="50dp"
-        android:layout_gravity="center"
-        android:layout_marginLeft="50px"
-        android:layout_marginRight="50px"
-        android:background="@drawable/rectangle_btn"
-        android:text="TEST" />
 </LinearLayout>
 
 

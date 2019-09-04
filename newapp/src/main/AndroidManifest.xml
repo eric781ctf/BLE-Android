@@ -11,6 +11,7 @@
 
     <uses-feature android:name="android.hardware.location.gps" />
 
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <application
         android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
@@ -23,18 +24,20 @@
             android:resource="@xml/network_security_config" />
 
         <activity android:name=".activity.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
+        <activity android:name=".activity.FingerprintActivity"><intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter></activity>
         <activity android:name=".activity.DeviceScanActivity" />
         <activity android:name=".activity.DeviceDetailActivity" />
         <activity android:name=".activity.DeviceControlActivity" />
         <activity android:name=".activity.middlePlace" />
         <activity android:name=".activity.DeviceControlAtSeach" />
         <activity android:name=".activity.DeviceTransactionSearch" />
+        <activity android:name=".activity.LoginActivity"/>
 
         <uses-library
             android:name="org.apache.http.legacy"

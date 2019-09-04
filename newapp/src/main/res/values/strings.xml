@@ -15,6 +15,10 @@
     <string name="header_raw_ad_records">Raw Ad Records</string>
     <string name="header_rssi_info">RSSI Info</string>
     <string name="header_scan_record">Scan Record</string>
+    <!-- Finger Print -->
+    <string name="note"></string>
+    <string name="title_fingerprint">One-touch Sign In</string>
+    <string name="desc_fingerprint">Please place your fingertip on the scanner to verify your identity</string>
 
     <!-- Formatters -->
     <string name="formatter_db">%sdb</string>

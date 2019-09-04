@@ -22,6 +22,7 @@ import com.vise.baseble.model.BluetoothLeDevice;
 import com.vise.bledemo.R;
 import com.vise.bledemo.common.BluetoothDeviceManager;
 import com.vise.log.ViseLog;
+import com.vise.xsnow.cache.SpCache;
 import com.vise.xsnow.event.BusManager;
 
 import org.apache.http.entity.StringEntity;
@@ -36,6 +37,10 @@ import java.util.UUID;
  * From middlePlace
  **/
 public class DeviceControlActivity extends AppCompatActivity {
+
+    public static BluetoothLeDevice mDevice = LoginActivity.mDevice;
+
+    public static SpCache mSpCache;
 
     private TextView balance_title;
     private TextView balance;
@@ -94,7 +99,6 @@ public class DeviceControlActivity extends AppCompatActivity {
     JSONObject TransactionJson;
 
     Intent next;
-    private BluetoothLeDevice mDevice;
 
     @Override
     protected void onDestroy(){
@@ -115,7 +119,6 @@ public class DeviceControlActivity extends AppCompatActivity {
 
         /**將前一頁面請求的資訊傳到這個頁面*/
         Intent intent = this.getIntent();
-        mDevice = intent.getParcelableExtra(middlePlace.EXTRA_DEVICE);
         Bundle bundle = getIntent().getExtras();
         Address = bundle.getString("Address");
         priv_hash = bundle.getString("priv_hash");
@@ -137,6 +140,8 @@ public class DeviceControlActivity extends AppCompatActivity {
             BluetoothDeviceManager.getInstance().connect(mDevice);
         }
 
+        mSpCache = new SpCache(this);
+
         Do_txn_URI_Thread.start();//進入頁面先傳送 ethertxn 的 URI 給 BLE
         get_Balance_Thread.start();//向 Web3 Server 取得 Balance
         try {
@@ -145,6 +150,7 @@ public class DeviceControlActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         get_Nonce_Thread.start();//向 Web3 Server 取得 Nonce
+
         init();
     }
 
@@ -355,7 +361,7 @@ public class DeviceControlActivity extends AppCompatActivity {
                 if (ResultOfTransaction.equals("Successfully")){
                     AlertDialog.Builder Success = new AlertDialog.Builder(DeviceControlActivity.this);
                     Success.setTitle("Transaction Succeed");
-                    Success.setMessage("This transaction is finished\nReturn to Home page");
+                    Success.setMessage("This transaction is Succeed\n Back to Home page");
                     Success.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -371,7 +377,7 @@ public class DeviceControlActivity extends AppCompatActivity {
                     System.out.println("Failed Transaction");
                     AlertDialog.Builder Failed = new AlertDialog.Builder(DeviceControlActivity.this);
                     Failed.setTitle("Transaction Failed");
-                    Failed.setMessage("This transaction happened some wrong\nPlease try again\nReturn to Home page");
+                    Failed.setMessage("Result : \n"+ResultOfTransaction);
                     Failed.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -518,24 +524,25 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     class DOTXN_URI extends Thread{
         public void run(){
-            middlePlace.BLE_URI("ethertxn");
+            middlePlace.BLE_URI("ethertxn",mSpCache);
             middlePlace.delay(500);
         }
     }
     class DOTXN_DATA extends Thread{
         public void run(){
-            middlePlace.BLE_DATA(VALUE_FOR_TXN);
+            middlePlace.BLE_DATA(VALUE_FOR_TXN,mSpCache);
         }
     }
     class DOTXN_RW extends Thread{
         public void run(){
-            middlePlace.BLE_RW(ReceiverAddress.getText().toString());
-            System.out.println("Address to BLE : "+ReceiverAddress);
+            String Data = LoginActivity.password_use+","+ReceiverAddress.getText().toString();
+            middlePlace.BLE_RW(Data,mSpCache);
+            System.out.println("Data Password & Address to BLE : "+Data);
         }
     }
     class DOTXN_CTRL extends Thread{
         public void run(){
-            middlePlace.BLE_CONTROL("3");
+            middlePlace.BLE_CONTROL("3",mSpCache);
         }
     }
     class DOTXN_READ extends Thread{

@@ -42,7 +42,8 @@ public class middlePlace extends AppCompatActivity{
     public static final String CONNECT_FAILED = "Connect failed";
     public static final String CONNECT_SUCCESS = "Connect success";
 
-    private static BluetoothLeDevice mDevice;
+    public static BluetoothLeDevice mDevice = LoginActivity.mDevice;
+
     private TextView Loading;
     private TextView Status;
     private Button TestBTN;
@@ -92,14 +93,12 @@ public class middlePlace extends AppCompatActivity{
         Transaction = findViewById(R.id.transaction);
         Loading = findViewById(R.id.space_2);
         progressbar = findViewById(R.id.progressbar);
-        TestBTN = findViewById(R.id.test);
         mSpCache = new SpCache(this);
         if (android.os.Build.VERSION.SDK_INT > 9)
         {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
-        BluetoothDeviceManager.getInstance().connect(mDevice);
         //連線設備
         while (!BluetoothDeviceManager.getInstance().isConnected(mDevice)){
             BluetoothDeviceManager.getInstance().connect(mDevice);
@@ -142,12 +141,6 @@ public class middlePlace extends AppCompatActivity{
                 }
             }
         });
-        TestBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                test.start();
-            }
-        });
     }
 
     /**函式*/
@@ -179,7 +172,7 @@ public class middlePlace extends AppCompatActivity{
         BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_READ, ServiceUUID, UUID.fromString("00002ab9-0000-1000-8000-00805f9b34fb"), null);
         BluetoothDeviceManager.getInstance().read(mDevice);
     }//透過 UUID : 2AB9 讀取 Body
-    public static void BLE_URI(String URI){
+    public static void BLE_URI(String URI,SpCache mSpCache){
         //用 URI UUID 建立通道
         mSpCache.put(WRITE_CHARACTERISTI_UUID_KEY + mDevice.getAddress(), URI_UUID.toString());
         BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_WRITE, ServiceUUID, URI_UUID, null);
@@ -194,7 +187,7 @@ public class middlePlace extends AppCompatActivity{
         System.out.println("WRITE URI : " + URI + " SUCCESS");
         mSpCache.remove(WRITE_DATA_KEY+mDevice.getAddress());
     }//透過 UUID : 2AB6 傳送URI
-    public static void BLE_RW(String word){
+    public static void BLE_RW(String word,SpCache mSpCache){
         //用 R/W UUID 建立通道
         mSpCache.put(WRITE_CHARACTERISTI_UUID_KEY + mDevice.getAddress(), RW_UUID.toString());
         BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_WRITE, ServiceUUID, RW_UUID, null);
@@ -219,7 +212,8 @@ public class middlePlace extends AppCompatActivity{
             textview.setTextColor(Color.parseColor("#00DD00"));
         }
     }//檢查 BLE 連線狀態
-    public static void BLE_DATA(String data){
+    public static void BLE_DATA(String data,SpCache mSpCache){
+
         //用 DATA UUID 建立通道
         mSpCache.put(WRITE_CHARACTERISTI_UUID_KEY + mDevice.getAddress(), DATA_UUID.toString());
         BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_WRITE, ServiceUUID, DATA_UUID, null);
@@ -236,7 +230,7 @@ public class middlePlace extends AppCompatActivity{
         System.out.println("Send DATA : " + data + " SUCCESS");
         mSpCache.remove(WRITE_DATA_KEY + mDevice.getAddress());
     }//透過 UUID : 1000 傳送 DATA
-    public static void BLE_CONTROL(String control_point){
+    public static void BLE_CONTROL(String control_point,SpCache mSpCache){
         //用 Control point UUID 建立通道
         mSpCache.put(WRITE_CHARACTERISTI_UUID_KEY + mDevice.getAddress(), Control_UUID.toString());
         BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_WRITE, ServiceUUID, Control_UUID, null);
@@ -284,13 +278,6 @@ public class middlePlace extends AppCompatActivity{
     Thread DoThread_1 = new connect_Thread_1();
     Thread DoThread_2 = new connect_Thread_2();
     Thread getToken = new gettoken();
-
-    Thread test1 = new test_1();
-    Thread test2 = new test_2();
-    Thread test3 = new test_3();
-    Thread test4 = new test_4();
-    Thread test5 = new test_5();
-    Thread test = new test_thread();
 
     /**執行緒內容*/
     class connect_Thread_2 extends Thread{
@@ -398,14 +385,14 @@ public class middlePlace extends AppCompatActivity{
 
     class getBLEAddress_URI extends Thread{
         public void run(){
-            BLE_URI(Address);
+            BLE_URI(Address,mSpCache);
             delay(1000);
         }
     }//向BLE 取得 Address的執行緒(1. 傳送 URI)
     class getBLEAddress_Ctrl extends Thread{
         public void run(){
             delay(1000);
-            BLE_CONTROL(Get2ABA);
+            BLE_CONTROL(Get2ABA,mSpCache);
         }
     }//向BLE 取得 Address的執行緒(2. 傳送Control Point)
     class getBLEAddress_READ extends Thread{
@@ -418,14 +405,14 @@ public class middlePlace extends AppCompatActivity{
         public void run(){
             delay(1000);
             Address_store = DeviceMirror.Get_value();
-            System.out.println("BLE address is : " + Address_store);
+            System.out.println("Your BLE address is : " + Address_store);
         }
     }//向BLE 取得 Address的執行緒(4. 儲存 Body 的值)
 
     class get_priv_hash_Thread_URI extends Thread{
         public void run(){
             if(BluetoothDeviceManager.getInstance().isConnected(mDevice)){
-                BLE_URI(priv_hash_BLE);
+                BLE_URI(priv_hash_BLE,mSpCache);
             }else{
                 System.out.println("BLE DISCONNECT");
             }
@@ -434,7 +421,7 @@ public class middlePlace extends AppCompatActivity{
     class get_priv_hash_Thread_Ctrl extends Thread{
         public void run(){
             delay(1000);
-            BLE_CONTROL(Get2ABA);
+            BLE_CONTROL(Get2ABA,mSpCache);
         }
     }//向BLE 取得priv_hash的執行緒(2. 傳送Control Point)
     class get_priv_hash_Thread_READ extends Thread{
@@ -443,78 +430,7 @@ public class middlePlace extends AppCompatActivity{
             BLE_READ();
             delay(1000);
             priv_hash_store = DeviceMirror.Get_value();
-            System.out.println("priv_hash_store : " + priv_hash_store);
+            System.out.println("Your priv_hash is : " + priv_hash_store);
         }
     }//向BLE 取得priv_hash的執行緒(3. 讀取並儲存 Body 的值)
-
-    class test_thread extends Thread{
-        public void run(){
-            test1.start();
-            try {
-                test1.join();
-                delay(1000);
-                System.out.println("BLE_DATA : "+VALUE_FOR_Test+"-->Finish ");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            test2.start();
-            try {
-                test2.join();
-                delay(1000);
-                System.out.println("BLE_RW : "+ Address_store+"-->Finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            test3.start();
-            try {
-                test3.join();
-                delay(1000);
-                System.out.println("BLE_URI : ethertxn -->Finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            test4.start();
-            try {
-                test4.join();
-                delay(1000);
-                System.out.println("BLE_CONTROL : 3 -->Finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            test5.start();
-            try {
-                test5.join();
-                delay(1000);
-                TEST = DeviceMirror.Get_value();
-                System.out.println("TXN : "+TEST+"-->Finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    class test_1 extends Thread{
-        public void run(){
-            BLE_DATA(VALUE_FOR_Test);
-        }
-    }
-    class test_2 extends Thread{
-        public void run(){
-            BLE_RW(Address_store);
-        }
-    }
-    class test_3 extends Thread{
-        public void run(){
-            BLE_URI("ethertxn");
-        }
-    }
-    class test_4 extends Thread{
-        public void run(){
-            BLE_CONTROL("3");
-        }
-    }
-    class test_5 extends Thread{
-        public void run(){
-            BLE_READ();
-        }
-    }
 }

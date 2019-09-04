@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:overScrollMode="never"
     android:padding="15dp"
-    android:scrollbars="none">
+    android:scrollbars="none"
+    android:background="@drawable/back">
 
     <LinearLayout
         android:layout_width="match_parent"

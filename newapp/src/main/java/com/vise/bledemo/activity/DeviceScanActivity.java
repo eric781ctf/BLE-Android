@@ -86,7 +86,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                 BluetoothLeDevice device = (BluetoothLeDevice) adapter.getItem(position);
                 if (device == null) return;
 
-                Intent intent = new Intent(DeviceScanActivity.this, middlePlace.class);
+                Intent intent = new Intent(DeviceScanActivity.this, LoginActivity.class);
                 intent.putExtra("extra_device", device);
                 startActivity(intent);
             }
