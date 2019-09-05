@@ -54,13 +54,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mSpCache = new SpCache(this);
 
-        Login_URI_Thread.start();
-        try {
-            Login_URI_Thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         main();
     }
 
@@ -79,7 +72,6 @@ public class LoginActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 middlePlace.delay(1000);
-
             }
         });
         Ask.setNegativeButton("Sign up", new DialogInterface.OnClickListener() {
@@ -92,18 +84,16 @@ public class LoginActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 middlePlace.delay(1000);
-
             }
         });
         AlertDialog TellInfo2 = Ask.create();
         TellInfo2.show();
 
-
         //註冊樹梅派
         Sign_up_BTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
+                final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
                 Read.setTitle("Check the Password");
                 Read.setMessage("Is the password correct : \n"+password.getText().toString());
                 Read.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -117,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         middlePlace.delay(1000);
 
-                        AlertDialog.Builder Check = new AlertDialog.Builder(LoginActivity.this);
+                        final AlertDialog.Builder Check = new AlertDialog.Builder(LoginActivity.this);
                         Check.setTitle("Tips");
                         Check.setMessage("Are you sure to sign up a new account?");
                         Check.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -130,7 +120,7 @@ public class LoginActivity extends AppCompatActivity {
                                     e.printStackTrace();
                                 }
 
-                                AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
+                                final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
                                 Read.setTitle("Sign Up");
                                 Read.setMessage("Are you sure to sign up a new account?");
                                 Read.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -158,9 +148,9 @@ public class LoginActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         password.setText("");
                                         BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                        middlePlace.delay(500);
+                                        middlePlace.delay(1000);
                                         BluetoothDeviceManager.getInstance().connect(mDevice);
-                                        finish();
+                                        Read.setCancelable(true);
                                     }
                                 });
                                 AlertDialog TellInfo1 = Read.create();
@@ -172,9 +162,9 @@ public class LoginActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 password.setText("");
                                 BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                middlePlace.delay(500);
+                                middlePlace.delay(1000);
                                 BluetoothDeviceManager.getInstance().connect(mDevice);
-                                finish();
+                                Check.setCancelable(true);
                             }
                         });
                         AlertDialog TellInfo = Check.create();
@@ -187,9 +177,9 @@ public class LoginActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         password.setText("");
                         BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                        middlePlace.delay(500);
+                        middlePlace.delay(1000);
                         BluetoothDeviceManager.getInstance().connect(mDevice);
-                        finish();
+                        Read.setCancelable(true);
                     }
                 });
                 AlertDialog TellInfo1 = Read.create();
@@ -208,7 +198,7 @@ public class LoginActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                AlertDialog.Builder Check = new AlertDialog.Builder(LoginActivity.this);
+                final AlertDialog.Builder Check = new AlertDialog.Builder(LoginActivity.this);
                 Check.setTitle("Check the password!");
                 Check.setMessage("Is the password correct : \n"+password.getText().toString());
                 Check.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -221,9 +211,9 @@ public class LoginActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         middlePlace.delay(3000);
-                        AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
-                        Read.setTitle("Login Success");
-                        Read.setMessage("Your Login is Success !!");
+                        final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
+                        Read.setTitle("Tips");
+                        Read.setMessage("Please wait a few seconds");
                         Read.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -239,10 +229,17 @@ public class LoginActivity extends AppCompatActivity {
                                 }
                                 System.out.println("BLE call back : "+callback);
 
-                                //需要確認call back
-                                next = new Intent(LoginActivity.this,middlePlace.class);
-                                next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
-                                startActivity(next);
+                                if(callback.equals("Login success")){
+                                    //登入成功
+                                    next = new Intent(LoginActivity.this,middlePlace.class);
+                                    next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
+                                    startActivity(next);
+                                }else if(callback.equals("Password error")){
+                                    //重新輸入密碼
+
+                                }else if(callback.equals("Address not exists")){
+                                    //尚未創建帳戶
+                                }
                             }
                         });
                         Read.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -250,9 +247,9 @@ public class LoginActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 password.setText("");
                                 BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                middlePlace.delay(500);
+                                middlePlace.delay(1000);
                                 BluetoothDeviceManager.getInstance().connect(mDevice);
-                                finish();
+                                Read.setCancelable(true);
                             }
                         });
                         AlertDialog TellInfo1 = Read.create();
@@ -264,9 +261,9 @@ public class LoginActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         password.setText("");
                         BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                        middlePlace.delay(500);
+                        middlePlace.delay(1000);
                         BluetoothDeviceManager.getInstance().connect(mDevice);
-                        finish();
+                        Check.setCancelable(true);
                     }
                 });
                 AlertDialog TellInfo = Check.create();

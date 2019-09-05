@@ -62,30 +62,21 @@ public class DeviceControlActivity extends AppCompatActivity {
     private SeekBar Gas_Seekbar;
     private SeekBar GasPrice_Seekbar;
 
-    UUID ServiceUUID = UUID.fromString("00001823-0000-1000-8000-00805f9b34fb"); //1823
-    UUID URI_UUID = UUID.fromString("00002ab6-0000-1000-8000-00805f9b34fb");    //2AB6
-    UUID DATA_UUID = UUID.fromString("00001001-0000-1000-8000-00805f9b34fb");   //1001
-    UUID RW_UUID = UUID.fromString("00001000-0000-1000-8000-00805f9b34fb");     //1000
-    UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   1:get  3:post
-    UUID Body_UUID = UUID.fromString("00002ab9-0000-1000-8000-00805f9b34fb");//2AB9
-    UUID Status_UUID = UUID.fromString("00002abb-0000-1000-8000-00805f9b34fb");//2ABB  讀取若為200則成功
-
     URI Balance_Web3 = URI.create("http://192.168.50.20:5000/balance");
     URI Nonce_Web3 = URI.create("http://192.168.50.20:5000/nonce");
     URI transaction_Web3 = URI.create("http://192.168.50.20:5000/transaction");
 
     static int i;
 
-    String Post2ABA = "3";
-    String publickey = "publickey";
     String response_Web3;
     String TXN_TO_Web3 = "empty";
     String VALUE_FOR_TXN;
     String ResultOfTransaction;
-    String encrypted;
     String Address_encrypted;
     String TXN_TO_Web3_encrypted;
-    static String result;
+    String getContents;
+
+    int a, b;
 
     byte[] KEY = new byte[16];
     byte[] IV = new byte[16];
@@ -99,6 +90,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     JSONObject TransactionJson;
 
     Intent next;
+    IntentResult result;
 
     @Override
     protected void onDestroy(){
@@ -158,38 +150,24 @@ public class DeviceControlActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (!BluetoothDeviceManager.getInstance().isConnected(mDevice)) {
-            System.out.println("Out of connect");
-            new AlertDialog.Builder(DeviceControlActivity.this)
-                    .setTitle("與藍芽設備連線中斷")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent next = new Intent(DeviceControlActivity.this,DeviceScanActivity.class);
-                            startActivity(next);
-                            finish();
-                        }
-                    }).show();
-        }else {
-            IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-            if (result != null) {
-                String getContents = result.getContents();
-                if (getContents == null) {
-                    Toast.makeText(this, "You cancelled the scanning", Toast.LENGTH_SHORT).show();
-                } else {
-                    ReceiverAddress.setText("");
-                    ReceiverAddress.setText(getContents);//將QRcode掃描結果放置address框框
-                    Do_txn_RW_Thread.start();
-                    try {
-                        Do_txn_RW_Thread.join();
-                        System.out.println("Finish RW Thread!!");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+        result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null) {
+            getContents = result.getContents();
+            if (getContents == null) {
+                Toast.makeText(this, "You cancelled the scanning", Toast.LENGTH_SHORT).show();
             } else {
-                super.onActivityResult(requestCode, resultCode, data);
+                ReceiverAddress.setText("");
+                ReceiverAddress.setText(getContents);//將QRcode掃描結果放置address框框
+                Do_txn_RW_Thread.start();
+                try {
+                    Do_txn_RW_Thread.join();
+                    System.out.println("Finish RW Thread!!");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -278,7 +256,7 @@ public class DeviceControlActivity extends AppCompatActivity {
                 mValue.setEnabled(false);
                 Gas_Seekbar.setEnabled(false);
                 GasPrice_Seekbar.setEnabled(false);
-                int a, b;
+
                 a = Integer.parseInt(gasvalue.getText().toString());
                 b = Integer.parseInt(gasPricevalue.getText().toString());
                 if (a == 0 || b == 0) {
@@ -397,9 +375,8 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     /**函式*/
     public void Check_EditText(){
-        if (mValue.getText().equals(null) && gasvalue.getText().equals(null) && gasPricevalue.getText().equals(null)){
+        if (mValue.getText().toString().equals(null)){
             System.out.println("No word in editbox");
-            Check_EditText();
         }else{
             System.out.println("mValue : "+mValue.getText()+"\n mGas : "+gasvalue.getText()+"\n mGasPrice : "+gasPricevalue.getText());
             System.out.println("word are in Editbox");

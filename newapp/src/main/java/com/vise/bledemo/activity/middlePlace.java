@@ -39,17 +39,11 @@ public class middlePlace extends AppCompatActivity{
     public static final String WRITE_CHARACTERISTI_UUID_KEY = "write_uuid_key";
     public static final String WRITE_DATA_KEY = "write_data_key";
     public static final String EXTRA_DEVICE = "extra_device";
-    public static final String CONNECT_FAILED = "Connect failed";
-    public static final String CONNECT_SUCCESS = "Connect success";
-
     public static BluetoothLeDevice mDevice = LoginActivity.mDevice;
 
     private TextView Loading;
     private TextView Status;
-    private Button TestBTN;
     private Button Transaction;
-    private Button resetconnect;
-    private Button STARTTEST;
     private static SpCache mSpCache;
     private ProgressBar progressbar;
 
@@ -58,23 +52,19 @@ public class middlePlace extends AppCompatActivity{
     static UUID DATA_UUID = UUID.fromString("00001001-0000-1000-8000-00805f9b34fb");   //1001   Write
     static UUID RW_UUID = UUID.fromString("00001000-0000-1000-8000-00805f9b34fb");     //1000   Write
     static UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   Write    1:get  3:post
-    UUID Body_UUID = UUID.fromString("00002ab9-0000-1000-8000-00805f9b34fb");   //2AB9   Read
-    UUID Status_UUID = UUID.fromString("00002abb-0000-1000-8000-00805f9b34fb"); //2ABB   Read     讀取若為200則成功
+
     URI Get_token_Web3 = URI.create("http://192.168.50.20:5000/get_token");
 
     String Get2ABA = "1";
-    String publickey = "showPublickey";
     String Address="address";
     String Address_store;
     String priv_hash_BLE = "priv_hash";
-    String testAPI = "test";
     String priv_hash_store = "NOTHING";
     String response_Web3;
     String TOKEN;
-    String VALUE_FOR_Test = "9,9,10,2";
+
     byte [] IV = new byte[16];
     byte [] KEY = new byte[16];
-    String TEST;
 
     StringEntity priv_hash_change;
     JSONObject json;
@@ -203,15 +193,6 @@ public class middlePlace extends AppCompatActivity{
         System.out.println("Send R/W : " + word + " SUCCESS");
         mSpCache.remove(WRITE_DATA_KEY + mDevice.getAddress());
     }//透過 UUID : 1000  傳送 R/W
-    public void CHECK_BLE_STATUS(TextView textview){
-        if (!BluetoothDeviceManager.getInstance().isConnected(mDevice)) {
-            textview.setText(CONNECT_FAILED);
-            textview.setTextColor(Color.parseColor("#FF0000"));
-        }else {
-            textview.setText(CONNECT_SUCCESS);
-            textview.setTextColor(Color.parseColor("#00DD00"));
-        }
-    }//檢查 BLE 連線狀態
     public static void BLE_DATA(String data,SpCache mSpCache){
 
         //用 DATA UUID 建立通道
@@ -267,19 +248,8 @@ public class middlePlace extends AppCompatActivity{
         return rawData ;
     }
 
-    /**宣告執行緒*/
-    Thread getBLE_address_URI = new getBLEAddress_URI();
-    Thread getBLE_address_Ctrl = new getBLEAddress_Ctrl();
-    Thread getBLE_address_READ = new getBLEAddress_READ();
-    Thread getBLE_address_STORE = new getBLEAddress_STORE();
-    Thread priv_hash_Thread_URI = new get_priv_hash_Thread_URI();
-    Thread priv_hash_Thread_Ctrl = new get_priv_hash_Thread_Ctrl();
-    Thread priv_hash_Thread_READ = new get_priv_hash_Thread_READ();
-    Thread DoThread_1 = new connect_Thread_1();
-    Thread DoThread_2 = new connect_Thread_2();
-    Thread getToken = new gettoken();
-
-    /**執行緒內容*/
+    /**執行緒內容及宣告*/
+    //執行 Get Address的執行緒
     class connect_Thread_2 extends Thread{
         public void run(){
             try {
@@ -328,7 +298,9 @@ public class middlePlace extends AppCompatActivity{
                 }
             });
         }
-    }//執行 Get Address的執行緒
+    }
+    Thread DoThread_2 = new connect_Thread_2();
+    //執行 Get priv_hash 及 Get Token 的執行緒
     class connect_Thread_1 extends Thread{
         public void run(){
             delay(1000);
@@ -357,8 +329,9 @@ public class middlePlace extends AppCompatActivity{
             System.out.println("Start getToken");
             delay(1000);
         }
-    }//執行 Get priv_hash 及 Get Token 的執行緒
-
+    }
+    Thread DoThread_1 = new connect_Thread_1();
+    //向Web3 取得Token 的執行緒
     class gettoken extends Thread{
         public void run(){
             TOKEN = getTOKEN();
@@ -381,26 +354,30 @@ public class middlePlace extends AppCompatActivity{
             IV = hexToBytes(extra[1]);
             System.out.println("IV is : "+IV+"  "+IV.length);
         }
-    }//向Web3 取得Token 的執行緒
+    }
+    Thread getToken = new gettoken();
 
     class getBLEAddress_URI extends Thread{
         public void run(){
             BLE_URI(Address,mSpCache);
             delay(1000);
         }
-    }//向BLE 取得 Address的執行緒(1. 傳送 URI)
+    }//向BLE 取得 Address的執行緒(1.
+    Thread getBLE_address_URI = new getBLEAddress_URI();
     class getBLEAddress_Ctrl extends Thread{
         public void run(){
             delay(1000);
             BLE_CONTROL(Get2ABA,mSpCache);
         }
     }//向BLE 取得 Address的執行緒(2. 傳送Control Point)
+    Thread getBLE_address_Ctrl = new getBLEAddress_Ctrl();
     class getBLEAddress_READ extends Thread{
         public void run(){
             delay(1000);
             BLE_READ();
         }
     }//向BLE 取得 Address的執行緒(3. 讀取 Body)
+    Thread getBLE_address_READ = new getBLEAddress_READ();
     class getBLEAddress_STORE extends Thread{
         public void run(){
             delay(1000);
@@ -408,6 +385,7 @@ public class middlePlace extends AppCompatActivity{
             System.out.println("Your BLE address is : " + Address_store);
         }
     }//向BLE 取得 Address的執行緒(4. 儲存 Body 的值)
+    Thread getBLE_address_STORE = new getBLEAddress_STORE();
 
     class get_priv_hash_Thread_URI extends Thread{
         public void run(){
@@ -418,12 +396,14 @@ public class middlePlace extends AppCompatActivity{
             }
         }
     }//向BLE 取得priv_hash的執行緒(1. 傳送 URI)
+    Thread priv_hash_Thread_URI = new get_priv_hash_Thread_URI();
     class get_priv_hash_Thread_Ctrl extends Thread{
         public void run(){
             delay(1000);
             BLE_CONTROL(Get2ABA,mSpCache);
         }
     }//向BLE 取得priv_hash的執行緒(2. 傳送Control Point)
+    Thread priv_hash_Thread_Ctrl = new get_priv_hash_Thread_Ctrl();
     class get_priv_hash_Thread_READ extends Thread{
         public void run(){
             delay(1000);
@@ -433,4 +413,5 @@ public class middlePlace extends AppCompatActivity{
             System.out.println("Your priv_hash is : " + priv_hash_store);
         }
     }//向BLE 取得priv_hash的執行緒(3. 讀取並儲存 Body 的值)
+    Thread priv_hash_Thread_READ = new get_priv_hash_Thread_READ();
 }
