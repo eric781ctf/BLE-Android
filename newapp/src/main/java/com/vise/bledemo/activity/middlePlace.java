@@ -41,17 +41,20 @@ public class middlePlace extends AppCompatActivity{
     public static final String EXTRA_DEVICE = "extra_device";
     public static BluetoothLeDevice mDevice = LoginActivity.mDevice;
 
+    private static SpCache mSpCache;
     private TextView Loading;
     private TextView Status;
     private Button Transaction;
-    private static SpCache mSpCache;
     private ProgressBar progressbar;
+
+    byte [] IV = new byte[16];
+    byte [] KEY = new byte[16];
 
     static UUID ServiceUUID = UUID.fromString("00001823-0000-1000-8000-00805f9b34fb"); //1823   Write
     static UUID URI_UUID = UUID.fromString("00002ab6-0000-1000-8000-00805f9b34fb");    //2AB6   Write
     static UUID DATA_UUID = UUID.fromString("00001001-0000-1000-8000-00805f9b34fb");   //1001   Write
     static UUID RW_UUID = UUID.fromString("00001000-0000-1000-8000-00805f9b34fb");     //1000   Write
-    static UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   Write    1:get  3:post
+    static UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   Write  1:get  3:post
 
     URI Get_token_Web3 = URI.create("http://192.168.50.20:5000/get_token");
 
@@ -62,9 +65,6 @@ public class middlePlace extends AppCompatActivity{
     String priv_hash_store = "NOTHING";
     String response_Web3;
     String TOKEN;
-
-    byte [] IV = new byte[16];
-    byte [] KEY = new byte[16];
 
     StringEntity priv_hash_change;
     JSONObject json;

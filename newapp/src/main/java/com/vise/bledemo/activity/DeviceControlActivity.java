@@ -39,7 +39,6 @@ import java.util.UUID;
 public class DeviceControlActivity extends AppCompatActivity {
 
     public static BluetoothLeDevice mDevice = LoginActivity.mDevice;
-
     public static SpCache mSpCache;
 
     private TextView balance_title;
@@ -62,11 +61,14 @@ public class DeviceControlActivity extends AppCompatActivity {
     private SeekBar Gas_Seekbar;
     private SeekBar GasPrice_Seekbar;
 
+    int a, b;
+
+    byte[] KEY = new byte[16];
+    byte[] IV = new byte[16];
+
     URI Balance_Web3 = URI.create("http://192.168.50.20:5000/balance");
     URI Nonce_Web3 = URI.create("http://192.168.50.20:5000/nonce");
     URI transaction_Web3 = URI.create("http://192.168.50.20:5000/transaction");
-
-    static int i;
 
     String response_Web3;
     String TXN_TO_Web3 = "empty";
@@ -75,11 +77,6 @@ public class DeviceControlActivity extends AppCompatActivity {
     String Address_encrypted;
     String TXN_TO_Web3_encrypted;
     String getContents;
-
-    int a, b;
-
-    byte[] KEY = new byte[16];
-    byte[] IV = new byte[16];
 
     StringEntity Balance_change;
     StringEntity Nonce_change;
