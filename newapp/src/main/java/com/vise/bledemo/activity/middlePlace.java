@@ -56,7 +56,7 @@ public class middlePlace extends AppCompatActivity{
     static UUID RW_UUID = UUID.fromString("00001000-0000-1000-8000-00805f9b34fb");     //1000   Write
     static UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   Write  1:get  3:post
 
-    URI Get_token_Web3 = URI.create("http://192.168.50.20:5000/get_token");
+    URI Get_token_Web3 = URI.create("http://192.168.0.8:5000/get_token");
 
     String Get2ABA = "1";
     String Address="address";

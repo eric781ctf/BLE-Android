@@ -58,135 +58,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void main(){
-
-        AlertDialog.Builder Ask = new AlertDialog.Builder(LoginActivity.this);
-        Ask.setTitle("Method");
-        Ask.setMessage("Login or Sign up ?");
-        Ask.setPositiveButton("Login", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Login_URI_Thread.start();
-                try {
-                    Login_URI_Thread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                middlePlace.delay(1000);
-            }
-        });
-        Ask.setNegativeButton("Sign up", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Sign_up_URI_Thread.start();
-                try {
-                    Sign_up_URI_Thread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                middlePlace.delay(1000);
-            }
-        });
-        AlertDialog TellInfo2 = Ask.create();
-        TellInfo2.show();
-
-        //註冊樹梅派
-        Sign_up_BTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
-                Read.setTitle("Check the Password");
-                Read.setMessage("Is the password correct : \n"+password.getText().toString());
-                Read.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        PSW_DATA_sign_Thread.start();
-                        try {
-                            PSW_DATA_sign_Thread.join();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        middlePlace.delay(1000);
-
-                        final AlertDialog.Builder Check = new AlertDialog.Builder(LoginActivity.this);
-                        Check.setTitle("Tips");
-                        Check.setMessage("Are you sure to sign up a new account?");
-                        Check.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                postDATA.start();
-                                try {
-                                    postDATA.join();
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
-                                final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
-                                Read.setTitle("Sign Up");
-                                Read.setMessage("Are you sure to sign up a new account?");
-                                Read.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        readBODY.start();
-                                        try {
-                                            readBODY.join();
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                        while(callback.equals("empty")){
-                                            readBODY.start();
-                                        }
-                                        System.out.println("BLE call back : "+callback);
-
-                                        //需要確認call back
-                                        next = new Intent(LoginActivity.this,middlePlace.class);
-                                        next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
-                                        startActivity(next);
-                                    }
-                                });
-                                Read.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        password.setText("");
-                                        BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                        middlePlace.delay(1000);
-                                        BluetoothDeviceManager.getInstance().connect(mDevice);
-                                        Read.setCancelable(true);
-                                    }
-                                });
-                                AlertDialog TellInfo1 = Read.create();
-                                TellInfo1.show();
-                            }
-                        });
-                        Check.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                password.setText("");
-                                BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                middlePlace.delay(1000);
-                                BluetoothDeviceManager.getInstance().connect(mDevice);
-                                Check.setCancelable(true);
-                            }
-                        });
-                        AlertDialog TellInfo = Check.create();
-                        TellInfo.show();
-                        middlePlace.delay(500);
-                    }
-                });
-                Read.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        password.setText("");
-                        BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                        middlePlace.delay(1000);
-                        BluetoothDeviceManager.getInstance().connect(mDevice);
-                        Read.setCancelable(true);
-                    }
-                });
-                AlertDialog TellInfo1 = Read.create();
-                TellInfo1.show();
-            }
-        });
-
+        Login_URI_Thread.start();
         //登入樹梅派
         Login_BTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -276,8 +148,6 @@ public class LoginActivity extends AppCompatActivity {
 
     /**執行緒*/
     Thread Login_URI_Thread = new Login_URI();
-    Thread Sign_up_URI_Thread = new Sign_up_URI();
-    Thread PSW_DATA_sign_Thread = new PSW_DATA_sign();
     Thread PSW_DATA_login_Thread = new PSW_DATA_login();
     Thread postDATA = new Ctrl_point();
     Thread readBODY = new READ_BODY();
@@ -288,20 +158,9 @@ public class LoginActivity extends AppCompatActivity {
             middlePlace.BLE_DATA(password_use,mSpCache);
         }
     }
-    class PSW_DATA_sign extends Thread{
-        public void run(){
-            password_use = password.getText().toString();
-            middlePlace.BLE_DATA(password_use,mSpCache);
-        }
-    }
     class Login_URI extends Thread{
         public void run(){
             middlePlace.BLE_URI("login",mSpCache);
-        }
-    }
-    class Sign_up_URI extends Thread{
-        public void run(){
-            middlePlace.BLE_URI("signup",mSpCache);
         }
     }
     class Ctrl_point extends Thread{

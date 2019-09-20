@@ -29,6 +29,7 @@ import org.apache.http.entity.StringEntity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.UUID;
@@ -66,9 +67,9 @@ public class DeviceControlActivity extends AppCompatActivity {
     byte[] KEY = new byte[16];
     byte[] IV = new byte[16];
 
-    URI Balance_Web3 = URI.create("http://192.168.50.20:5000/balance");
-    URI Nonce_Web3 = URI.create("http://192.168.50.20:5000/nonce");
-    URI transaction_Web3 = URI.create("http://192.168.50.20:5000/transaction");
+    URI Balance_Web3 = URI.create("http://192.168.0.8:5000/balance");
+    URI Nonce_Web3 = URI.create("http://192.168.0.8:5000/nonce");
+    URI transaction_Web3 = URI.create("http://192.168.0.8:55000/transaction");
 
     String response_Web3;
     String TXN_TO_Web3 = "empty";
@@ -85,6 +86,8 @@ public class DeviceControlActivity extends AppCompatActivity {
     JSONObject BalanceJson;
     JSONObject NonceJson;
     JSONObject TransactionJson;
+
+    double balance_double;
 
     Intent next;
     IntentResult result;
@@ -333,6 +336,7 @@ public class DeviceControlActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
                 if (ResultOfTransaction.equals("Successfully")){
                     AlertDialog.Builder Success = new AlertDialog.Builder(DeviceControlActivity.this);
                     Success.setTitle("Transaction Succeed");
@@ -340,14 +344,29 @@ public class DeviceControlActivity extends AppCompatActivity {
                     Success.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                            next = new Intent(DeviceControlActivity.this,middlePlace.class);
-                            next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
-                            startActivity(next);
+                            Balance_to_BLE_DATA.start();
+                            AlertDialog.Builder BALANCE = new AlertDialog.Builder(DeviceControlActivity.this);
+                            BALANCE.setTitle("Tips");
+                            BALANCE.setMessage("Your Balance will display on raspberry pi");
+                            BALANCE.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Balance_to_BLE_CTRL.start();
+                                    middlePlace.delay(1000);
+
+                                    BluetoothDeviceManager.getInstance().disconnect(mDevice);
+                                    next = new Intent(DeviceControlActivity.this,middlePlace.class);
+                                    next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
+                                    startActivity(next);
+                                }
+                            });
+                         AlertDialog TIPS = BALANCE.create();
+                         TIPS.show();
                         }
                     });
                     AlertDialog TellInfo = Success.create();
                     TellInfo.show();
+
                 }else{
                     System.out.println("Failed Transaction");
                     AlertDialog.Builder Failed = new AlertDialog.Builder(DeviceControlActivity.this);
@@ -453,6 +472,9 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     Thread post_transaction = new POST_Transaction_To_Web3();
 
+    Thread Balance_to_BLE_DATA = new get_Balance_to_BLE_DATA();
+    Thread Balance_to_BLE_CTRL = new DOTXN_CTRL();
+
     /**執行緒內容*/
     class encrypted_address extends Thread{
         public void run(){
@@ -540,4 +562,18 @@ public class DeviceControlActivity extends AppCompatActivity {
             ResultOfTransaction = post_transaction_to_Web3();
         }
     }//將東西post到Web3的執行緒
+
+    class get_Balance_to_BLE_DATA extends Thread{
+        public void run(){
+            Balance_encrypted = Get_Balance_from_Web3();
+            System.out.println("Get Balance encrypted : "+Balance_encrypted+" <END>");
+            try {
+                Balance = security.Decrypt(Balance_encrypted,KEY,IV);
+                System.out.println("Get Balance decrypted : "+Balance+" <END>");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            middlePlace.BLE_DATA(Balance,mSpCache);
+        }
+    }//將balance 傳到硬體錢包
 }
