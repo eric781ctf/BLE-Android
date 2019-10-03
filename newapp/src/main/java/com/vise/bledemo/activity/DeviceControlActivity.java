@@ -53,37 +53,37 @@ public class DeviceControlActivity extends AppCompatActivity {
     private Button SendBtn;
     private Button Balance_update;
     private String Nonce;
-    private String Balance;
+    private static String Balance;
     private String Nonce_encrypted;
-    private String Balance_encrypted;
+    private static String Balance_encrypted;
     private String Address;
-    private String Token;
-    private String priv_hash;
+    private static String Token;
+    private static String priv_hash;
     private SeekBar Gas_Seekbar;
     private SeekBar GasPrice_Seekbar;
 
     int a, b;
 
-    byte[] KEY = new byte[16];
-    byte[] IV = new byte[16];
+    static byte[] KEY = new byte[16];
+    static byte[] IV = new byte[16];
 
-    URI Balance_Web3 = URI.create("http://192.168.0.8:5000/balance");
-    URI Nonce_Web3 = URI.create("http://192.168.0.8:5000/nonce");
-    URI transaction_Web3 = URI.create("http://192.168.0.8:55000/transaction");
+    static URI Balance_Web3 = URI.create("http://192.168.50.20:5000/balance");
+    URI Nonce_Web3 = URI.create("http://192.168.50.20:5000/nonce");
+    URI transaction_Web3 = URI.create("http://192.168.50.20:5000/transaction");
 
-    String response_Web3;
+    static String response_Web3;
     String TXN_TO_Web3 = "empty";
     String VALUE_FOR_TXN;
     String ResultOfTransaction;
-    String Address_encrypted;
+    static String Address_encrypted;
     String TXN_TO_Web3_encrypted;
     String getContents;
 
-    StringEntity Balance_change;
+    static StringEntity Balance_change;
     StringEntity Nonce_change;
     StringEntity TXN_change;
 
-    JSONObject BalanceJson;
+    static JSONObject BalanceJson;
     JSONObject NonceJson;
     JSONObject TransactionJson;
 
@@ -118,7 +118,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         KEY = bundle.getByteArray("KEY");
         IV = bundle.getByteArray("IV");
         System.out.println("Get Address :"+Address+"  Get priv_hash :"+priv_hash+"   Get Token :"+Token);
-
+        mSpCache = new SpCache(this);
         //先將Address加密 稍後要 post 給 Server
         encrypted_ADDRESS_Thread.start();
         try {
@@ -130,17 +130,12 @@ public class DeviceControlActivity extends AppCompatActivity {
         //連線設備
         while (!BluetoothDeviceManager.getInstance().isConnected(mDevice)){
             BluetoothDeviceManager.getInstance().connect(mDevice);
+            middlePlace.delay(500);
         }
-
-        mSpCache = new SpCache(this);
+        get_Balance_Thread.start();
 
         Do_txn_URI_Thread.start();//進入頁面先傳送 ethertxn 的 URI 給 BLE
-        get_Balance_Thread.start();//向 Web3 Server 取得 Balance
-        try {
-            get_Balance_Thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         get_Nonce_Thread.start();//向 Web3 Server 取得 Nonce
 
         init();
@@ -158,6 +153,7 @@ public class DeviceControlActivity extends AppCompatActivity {
             } else {
                 ReceiverAddress.setText("");
                 ReceiverAddress.setText(getContents);//將QRcode掃描結果放置address框框
+                middlePlace.delay(1000);
                 Do_txn_RW_Thread.start();
                 try {
                     Do_txn_RW_Thread.join();
@@ -337,27 +333,89 @@ public class DeviceControlActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
+                Balance_to_BLE_DATA.start();
+                try {
+                    Balance_to_BLE_DATA.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 if (ResultOfTransaction.equals("Successfully")){
                     AlertDialog.Builder Success = new AlertDialog.Builder(DeviceControlActivity.this);
-                    Success.setTitle("Transaction Succeed");
-                    Success.setMessage("This transaction is Succeed\n Back to Home page");
-                    Success.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    Success.setTitle("Tips");
+                    Success.setMessage("There's few steps");
+                    Success.setPositiveButton("Next", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Balance_to_BLE_DATA.start();
+                            setvalue.start();
+                            try {
+                                setvalue.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            middlePlace.delay(2000);
                             AlertDialog.Builder BALANCE = new AlertDialog.Builder(DeviceControlActivity.this);
                             BALANCE.setTitle("Tips");
-                            BALANCE.setMessage("Your Balance will display on raspberry pi");
-                            BALANCE.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            BALANCE.setMessage("Your transaction Value will display on wallet");
+                            BALANCE.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     Balance_to_BLE_CTRL.start();
-                                    middlePlace.delay(1000);
-
-                                    BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                    next = new Intent(DeviceControlActivity.this,middlePlace.class);
-                                    next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
-                                    startActivity(next);
+                                    try {
+                                        Balance_to_BLE_CTRL.join();
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    middlePlace.delay(2000);
+                                    AlertDialog.Builder See = new AlertDialog.Builder(DeviceControlActivity.this);
+                                    See.setTitle("Tips");
+                                    See.setMessage("Please wait a second");
+                                    middlePlace.delay(2000);
+                                    See.setPositiveButton("Next", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            send_newBALANCE_URI.start();
+                                            try {
+                                                send_newBALANCE_URI.join();
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                            AlertDialog.Builder See2 = new AlertDialog.Builder(DeviceControlActivity.this);
+                                            See2.setTitle("Tips");
+                                            See2.setMessage("The trransaction is succeed");
+                                            See2.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    send_BALANCE.start();
+                                                    try {
+                                                        send_BALANCE.join();
+                                                    } catch (InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    AlertDialog.Builder See3 = new AlertDialog.Builder(DeviceControlActivity.this);
+                                                    See3.setTitle("Tips");
+                                                    See3.setMessage("It will display your balance on the wallet");
+                                                    See3.setPositiveButton("Next", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            Balance_to_BLE_CTRL.start();
+                                                            try {
+                                                                Balance_to_BLE_CTRL.join();
+                                                            } catch (InterruptedException e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                        }
+                                                    });
+                                                    AlertDialog NEXT3 = See3.create();
+                                                    NEXT3.show();
+                                                }
+                                            });
+                                            AlertDialog NEXT2 = See2.create();
+                                            NEXT2.show();
+                                        }
+                                    });
+                                    AlertDialog NEXT = See.create();
+                                    NEXT.show();
                                 }
                             });
                          AlertDialog TIPS = BALANCE.create();
@@ -367,6 +425,9 @@ public class DeviceControlActivity extends AppCompatActivity {
                     AlertDialog TellInfo = Success.create();
                     TellInfo.show();
 
+
+                    /*Intent Do = new Intent(DeviceControlActivity.this,middlePlace.class);
+                    startActivity(Do);*/
                 }else{
                     System.out.println("Failed Transaction");
                     AlertDialog.Builder Failed = new AlertDialog.Builder(DeviceControlActivity.this);
@@ -375,10 +436,18 @@ public class DeviceControlActivity extends AppCompatActivity {
                     Failed.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                            next = new Intent(DeviceControlActivity.this,middlePlace.class);
-                            next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
-                            startActivity(next);
+                            ReceiverAddress.setText("");
+                            gasvalue.setText("");
+                            mValue.setText("");
+                            gasPricevalue.setText("");
+
+                            Do_txn_URI_Thread.start();
+                            try {
+                                Do_txn_URI_Thread.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            finish();
                         }
                     });
                     AlertDialog TellInfo = Failed.create();
@@ -418,7 +487,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         System.out.println("Nonce : " + response_Web3);
         return response_Web3;
     }//取得Nonce 的函式
-    public String Get_Balance_from_Web3(){
+    public static String Get_Balance_from_Web3(){
         BalanceJson = new JSONObject();
         try {
             BalanceJson.put("id",priv_hash);
@@ -472,8 +541,16 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     Thread post_transaction = new POST_Transaction_To_Web3();
 
+    Thread TranValueTOBLE = new display_transaction_value();
     Thread Balance_to_BLE_DATA = new get_Balance_to_BLE_DATA();
-    Thread Balance_to_BLE_CTRL = new DOTXN_CTRL();
+    Thread setvalue = new set_VALUE_URI();
+    static Thread Balance_to_BLE_CTRL = new DOTXN_CTRL();
+
+    static Thread send_newBALANCE_URI=new send_set_balance_uri();
+    static Thread send_BALANCE = new send_new_BALANCE();
+    static Thread DISPLAY_balance = new display_Balance();
+    Thread set_BALANCE  = new do_balance_wallet();
+    Thread send1 = new sendbalance();
 
     /**執行緒內容*/
     class encrypted_address extends Thread{
@@ -536,7 +613,7 @@ public class DeviceControlActivity extends AppCompatActivity {
             System.out.println("Data Password & Address to BLE : "+Data);
         }
     }
-    class DOTXN_CTRL extends Thread{
+    static class DOTXN_CTRL extends Thread{
         public void run(){
             middlePlace.BLE_CONTROL("3",mSpCache);
         }
@@ -563,17 +640,119 @@ public class DeviceControlActivity extends AppCompatActivity {
         }
     }//將東西post到Web3的執行緒
 
-    class get_Balance_to_BLE_DATA extends Thread{
+    static class display_Balance extends Thread{
         public void run(){
-            Balance_encrypted = Get_Balance_from_Web3();
-            System.out.println("Get Balance encrypted : "+Balance_encrypted+" <END>");
+            send_newBALANCE_URI.start();
             try {
-                Balance = security.Decrypt(Balance_encrypted,KEY,IV);
-                System.out.println("Get Balance decrypted : "+Balance+" <END>");
+                send_newBALANCE_URI.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            middlePlace.delay(1000);
+            send_BALANCE.start();
+            try {
+                send_BALANCE.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            middlePlace.delay(1000);
+            Balance_to_BLE_CTRL.start();
+            try {
+                Balance_to_BLE_CTRL.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    static class send_new_BALANCE extends Thread{
+        public void run() {
+            Balance_encrypted = Get_Balance_from_Web3();
+            System.out.println("Get Balance encrypted : " + Balance_encrypted + " <END>");
+            try {
+                Balance = security.Decrypt(Balance_encrypted, KEY, IV);
+                System.out.println("Get Balance decrypted : " + Balance + " <END>");
             } catch (Exception e) {
                 e.printStackTrace();
             }
             middlePlace.BLE_DATA(Balance,mSpCache);
         }
+    }
+    static class send_set_balance_uri extends Thread{
+        public void run(){
+            middlePlace.BLE_URI("yourBalance",mSpCache);
+        }
+    }
+
+    class do_balance_wallet extends Thread{
+        public void run(){
+            send_newBALANCE_URI.start();
+            try {
+                send_newBALANCE_URI.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            middlePlace.delay(1000);
+            get_Balance_Thread.start();
+            try {
+                get_Balance_Thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            send1.start();
+            try {
+                send1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            middlePlace.delay(1000);
+            Balance_to_BLE_CTRL.start();
+            try {
+                Balance_to_BLE_CTRL.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    class sendbalance extends Thread{
+        public void run(){
+            middlePlace.BLE_DATA(Balance,mSpCache);
+        }
+    }
+
+    class display_transaction_value extends Thread{
+        public void run(){
+            Balance_to_BLE_DATA.start();
+            try {
+                Balance_to_BLE_DATA.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            middlePlace.delay(1000);
+            setvalue.start();
+            try {
+                setvalue.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            middlePlace.delay(1000);
+            Balance_to_BLE_CTRL.start();
+            try {
+                Balance_to_BLE_CTRL.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    class get_Balance_to_BLE_DATA extends Thread{
+        public void run(){
+            middlePlace.BLE_DATA(mValue.getText().toString(),mSpCache);
+        }
     }//將balance 傳到硬體錢包
+    class set_VALUE_URI extends Thread{
+        public void run(){
+            middlePlace.BLE_URI("setBalance",mSpCache);
+        }
+    }
+
 }

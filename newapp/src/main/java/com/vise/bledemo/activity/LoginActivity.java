@@ -35,7 +35,6 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         password = findViewById(R.id.PSW);
-        Sign_up_BTN = findViewById(R.id.sign_up);
         Login_BTN = findViewById(R.id.login);
 
         mDevice = getIntent().getParcelableExtra("extra_device");
@@ -107,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
                                     next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
                                     startActivity(next);
                                 }else if(callback.equals("Password error")){
-                                    //重新輸入密碼
+                                    Login_URI_Thread.start();
 
                                 }else if(callback.equals("Address not exists")){
                                     //尚未創建帳戶

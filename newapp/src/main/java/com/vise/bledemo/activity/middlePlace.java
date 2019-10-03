@@ -1,5 +1,6 @@
 package com.vise.bledemo.activity;
 
+import android.bluetooth.BluetoothClass;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -30,6 +31,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import static com.vise.bledemo.activity.DeviceControlActivity.Address_encrypted;
+import static com.vise.bledemo.activity.DeviceControlActivity.BalanceJson;
+import static com.vise.bledemo.activity.DeviceControlActivity.Balance_change;
+
 /**
  * The UI for going to Transaction UI or Search UI
  * It'll connect Ble device first at this class
@@ -55,16 +60,19 @@ public class middlePlace extends AppCompatActivity{
     static UUID DATA_UUID = UUID.fromString("00001001-0000-1000-8000-00805f9b34fb");   //1001   Write
     static UUID RW_UUID = UUID.fromString("00001000-0000-1000-8000-00805f9b34fb");     //1000   Write
     static UUID Control_UUID = UUID.fromString("00002aba-0000-1000-8000-00805f9b34fb");//2ABA   Write  1:get  3:post
-
-    URI Get_token_Web3 = URI.create("http://192.168.0.8:5000/get_token");
+    static URI Balance_Web3 = URI.create("http://192.168.50.20:5000/balance");
+    URI Get_token_Web3 = URI.create("http://192.168.50.20:5000/get_token");
 
     String Get2ABA = "1";
     String Address="address";
     String Address_store;
     String priv_hash_BLE = "priv_hash";
-    String priv_hash_store = "NOTHING";
-    String response_Web3;
-    String TOKEN;
+    static String priv_hash_store = "NOTHING";
+    static String response_Web3;
+    static String TOKEN = "a";
+    private static String Balance;
+    static String Address_encrypted;
+    private static String Balance_encrypted;
 
     StringEntity priv_hash_change;
     JSONObject json;
@@ -98,6 +106,8 @@ public class middlePlace extends AppCompatActivity{
         //priv_hash_Thread_URI.start();
         DoThread_1.start();
         DoThread_2.start();
+        DoThread_3.start();
+
         middlePlace();
     }
     public void middlePlace(){
@@ -247,59 +257,28 @@ public class middlePlace extends AppCompatActivity{
         }
         return rawData ;
     }
+    public static String Get_Balance_from_Web3(){
+        BalanceJson = new JSONObject();
+        try {
+            BalanceJson.put("id",priv_hash_store);
+            BalanceJson.put("token",TOKEN);
+            BalanceJson.put("data",Address_encrypted);
+            try {
+                Balance_change = new StringEntity(BalanceJson.toString());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Web3Control.Post_to_Web3(Balance_Web3,Balance_change);
+        response_Web3 = Web3Control.get_response();
+        System.out.println("Balance : " + response_Web3);
+        return response_Web3;
+
+    }//取得Balance的函式
 
     /**執行緒內容及宣告*/
-    //執行 Get Address的執行緒
-    class connect_Thread_2 extends Thread{
-        public void run(){
-            try {
-                DoThread_1.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("Start get Address");
-            getBLE_address_URI.start();
-            try {
-                getBLE_address_URI.join();
-                System.out.println("Get Address 1 finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            getBLE_address_Ctrl.start();
-            try {
-                getBLE_address_Ctrl.join();
-                System.out.println("Get Address 2 finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            getBLE_address_READ.start();
-            try {
-                getBLE_address_READ.join();
-                System.out.println("Get Address 3 finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            getBLE_address_STORE.start();
-            try {
-                getBLE_address_STORE.join();
-                System.out.println("Get Address 4 finish");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    progressbar.setVisibility(View.INVISIBLE);
-                    Loading.setVisibility(View.INVISIBLE);
-                    Transaction.setEnabled(true);
-                    Transaction.setVisibility(View.VISIBLE);
-                    Status.setText("Connected");
-                    System.out.println("Set Transaction Btn on \n Set Progress Bar INVISIBLE");
-                }
-            });
-        }
-    }
-    Thread DoThread_2 = new connect_Thread_2();
     //執行 Get priv_hash 及 Get Token 的執行緒
     class connect_Thread_1 extends Thread{
         public void run(){
@@ -356,6 +335,132 @@ public class middlePlace extends AppCompatActivity{
         }
     }
     Thread getToken = new gettoken();
+    //執行 Get Address的執行緒
+    class connect_Thread_2 extends Thread{
+        public void run(){
+            try {
+                DoThread_1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Start get Address");
+            getBLE_address_URI.start();
+            try {
+                getBLE_address_URI.join();
+                System.out.println("Get Address 1 finish");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            getBLE_address_Ctrl.start();
+            try {
+                getBLE_address_Ctrl.join();
+                System.out.println("Get Address 2 finish");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            getBLE_address_READ.start();
+            try {
+                getBLE_address_READ.join();
+                System.out.println("Get Address 3 finish");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            getBLE_address_STORE.start();
+            try {
+                getBLE_address_STORE.join();
+                System.out.println("Get Address 4 finish");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            encrypted_ADDRESS_Thread.start();
+            try {
+                encrypted_ADDRESS_Thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            get_Balance_From_Web3_Thread.start();
+            try {
+                get_Balance_From_Web3_Thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    Thread DoThread_2 = new connect_Thread_2();
+    class connect_Thread_3 extends Thread{
+        public void run(){
+            try {
+                DoThread_2.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Balance_URI_Thread.start();
+            try {
+                Balance_URI_Thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Balance_DATA_Thread.start();
+            try {
+                Balance_DATA_Thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Balance_CTRL_Thread.start();
+            try {
+                Balance_CTRL_Thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressbar.setVisibility(View.INVISIBLE);
+                    Loading.setVisibility(View.INVISIBLE);
+                    Transaction.setEnabled(true);
+                    Transaction.setVisibility(View.VISIBLE);
+                    Status.setText("Connected");
+                    System.out.println("Set Transaction Btn on \n Set Progress Bar INVISIBLE");
+                }
+            });
+        }
+    }
+    Thread DoThread_3 = new connect_Thread_3();
+
+    class get_Balance_From_Web3 extends Thread{
+        public void run(){
+            Balance_encrypted = Get_Balance_from_Web3();
+            System.out.println("Get Balance encrypted : "+Balance_encrypted+" <END>");
+            try {
+                Balance = security.Decrypt(Balance_encrypted,KEY,IV);
+                System.out.println("Get Balance decrypted : "+Balance+" <END>");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    Thread get_Balance_From_Web3_Thread = new get_Balance_From_Web3();
+    class Balance_URI extends Thread{
+        public void run(){
+            BLE_URI("yourBalance",mSpCache);
+            delay(1000);
+        }
+    }
+    Thread Balance_URI_Thread = new Balance_URI();
+    class Balance_DATA extends Thread{
+        public void run(){
+            BLE_DATA(Balance,mSpCache);
+            delay(1000);
+        }
+    }
+    Thread Balance_DATA_Thread = new Balance_DATA();
+    class Balance_CTRL extends Thread{
+        public void run(){
+            BLE_CONTROL("3",mSpCache);
+        }
+    }
+    Thread Balance_CTRL_Thread = new Balance_CTRL();
 
     class getBLEAddress_URI extends Thread{
         public void run(){
@@ -414,4 +519,16 @@ public class middlePlace extends AppCompatActivity{
         }
     }//向BLE 取得priv_hash的執行緒(3. 讀取並儲存 Body 的值)
     Thread priv_hash_Thread_READ = new get_priv_hash_Thread_READ();
+
+    class encrypted_address extends Thread{
+        public void run(){
+            try {
+                Address_encrypted = security.Encrypt(Address_store,KEY,IV);
+                System.out.println("Address_encrypted : "+Address_encrypted);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    Thread encrypted_ADDRESS_Thread = new encrypted_address();
 }
