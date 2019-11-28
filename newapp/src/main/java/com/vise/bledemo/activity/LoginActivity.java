@@ -81,11 +81,13 @@ public class LoginActivity extends AppCompatActivity {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        middlePlace.delay(3000);
-                        final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
+                        middlePlace.delay(10000);
+
+                        TellInfo_Thread.start();
+                        /*final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
                         Read.setTitle("Tips");
                         Read.setMessage("Please wait a few seconds");
-                        Read.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        Read.setPositiveButton("Next", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 readBODY.start();
@@ -113,18 +115,9 @@ public class LoginActivity extends AppCompatActivity {
                                 }
                             }
                         });
-                        Read.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                password.setText("");
-                                BluetoothDeviceManager.getInstance().disconnect(mDevice);
-                                middlePlace.delay(1000);
-                                BluetoothDeviceManager.getInstance().connect(mDevice);
-                                Read.setCancelable(true);
-                            }
-                        });
                         AlertDialog TellInfo1 = Read.create();
-                        TellInfo1.show();
+                        TellInfo1.setCancelable(false);
+                        TellInfo1.show();*/
                     }
                 });
                 Check.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -138,6 +131,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
                 AlertDialog TellInfo = Check.create();
+                TellInfo.setCancelable(false);
                 TellInfo.show();
 
                 middlePlace.delay(500);
@@ -150,6 +144,7 @@ public class LoginActivity extends AppCompatActivity {
     Thread PSW_DATA_login_Thread = new PSW_DATA_login();
     Thread postDATA = new Ctrl_point();
     Thread readBODY = new READ_BODY();
+    Thread TellInfo_Thread = new testThread();
 
     class PSW_DATA_login extends Thread{
         public void run(){
@@ -172,6 +167,50 @@ public class LoginActivity extends AppCompatActivity {
             middlePlace.BLE_READ();
             middlePlace.delay(1000);
             callback = DeviceMirror.Get_value();
+        }
+    }
+
+    class testThread extends Thread{
+        public void run(){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    final AlertDialog.Builder Read = new AlertDialog.Builder(LoginActivity.this);
+                    Read.setTitle("Tips");
+                    Read.setMessage("Please wait a few seconds");
+                    Read.setPositiveButton("Next", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            readBODY.start();
+                            try {
+                                readBODY.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            while(callback.equals("empty")){
+                                readBODY.start();
+                            }
+                            System.out.println("BLE call back : "+callback);
+
+                            if(callback.equals("Login success")){
+                                //登入成功
+                                next = new Intent(LoginActivity.this,middlePlace.class);
+                                next.putExtra(middlePlace.EXTRA_DEVICE,mDevice);
+                                startActivity(next);
+                            }else if(callback.equals("Password error")){
+                                Login_URI_Thread.start();
+
+                            }else if(callback.equals("Address not exists")){
+                                //尚未創建帳戶
+                            }
+                        }
+                    });
+                    AlertDialog TellInfo1 = Read.create();
+                    TellInfo1.setCancelable(false);
+                    TellInfo1.show();
+                }
+            });
         }
     }
 }

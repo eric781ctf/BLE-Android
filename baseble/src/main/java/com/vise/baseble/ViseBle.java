@@ -325,7 +325,7 @@ public class ViseBle {
     }
 
     /**
-     * 獲取當前血樹數據失敗重試次數
+     * 獲取當前寫入數據失敗重試次數
      * @return
      */
     public int getWriteDataRetryCount() {

@@ -22,6 +22,9 @@ public class BluetoothLeDeviceStore {
         if (device == null) {
             return;
         }
+        if(device.getName() == "Unknown device"){
+            return;
+        }
         if (mDeviceMap.containsKey(device.getAddress())) {
             mDeviceMap.get(device.getAddress()).updateRssiReading(device.getTimestamp(), device.getRssi());
         } else {

@@ -84,11 +84,14 @@ public class DeviceScanActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 //點擊進入到設備詳細訊息介面
                 BluetoothLeDevice device = (BluetoothLeDevice) adapter.getItem(position);
-                if (device == null) return;
+                if (device == null || device.getName()!="HpService") {
+                    System.out.println("wrong Device");
 
-                Intent intent = new Intent(DeviceScanActivity.this, LoginActivity.class);
-                intent.putExtra("extra_device", device);
-                startActivity(intent);
+                }else {
+                    Intent intent = new Intent(DeviceScanActivity.this, LoginActivity.class);
+                    intent.putExtra("extra_device", device);
+                    startActivity(intent);
+                }
             }
         });
     }

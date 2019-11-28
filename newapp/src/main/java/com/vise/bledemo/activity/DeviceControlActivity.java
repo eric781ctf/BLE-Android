@@ -267,8 +267,23 @@ public class DeviceControlActivity extends AppCompatActivity {
                         }
                     });
                     AlertDialog TellInfo = Info.create();
+                    TellInfo.setCancelable(false);
                     TellInfo.show();
-                } else{
+                } else if(Integer.parseInt(mValue.getText().toString()) < Integer.parseInt(Balance)){
+                    AlertDialog.Builder Info1 = new AlertDialog.Builder(DeviceControlActivity.this);
+                    Info1.setTitle("Warning!");
+                    Info1.setMessage("Insufficient Balance");
+                    Info1.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Gas_Seekbar.setEnabled(true);
+                            GasPrice_Seekbar.setEnabled(true);
+                        }
+                    });
+                    AlertDialog TellInfo1 = Info1.create();
+                    TellInfo1.setCancelable(false);
+                    TellInfo1.show();
+                }else{
                         /**將 Value Gas GasPrice 打包*/
                         VALUE_FOR_TXN = mValue.getText() + "," + Nonce + "," + gasPricevalue.getText() + "," + gasvalue.getText();  //value nonce gasprice gas
                         ViseLog.i("Value for Txn : " + VALUE_FOR_TXN);
@@ -306,8 +321,9 @@ public class DeviceControlActivity extends AppCompatActivity {
                         mValue.setText("");
                         }
                         });
-                        AlertDialog dialog = builder.create();
-                        dialog.show();
+                        AlertDialog TellInfo2 = builder.create();
+                        TellInfo2.setCancelable(false);
+                        TellInfo2.show();
                 }
             }
         });
@@ -406,24 +422,29 @@ public class DeviceControlActivity extends AppCompatActivity {
                                                             }
                                                         }
                                                     });
-                                                    AlertDialog NEXT3 = See3.create();
-                                                    NEXT3.show();
+                                                    AlertDialog TellInfo7 = See3.create();
+                                                    TellInfo7.setCancelable(false);
+                                                    TellInfo7.show();
                                                 }
                                             });
-                                            AlertDialog NEXT2 = See2.create();
-                                            NEXT2.show();
+                                            AlertDialog TellInfo6 = See2.create();
+                                            TellInfo6.setCancelable(false);
+                                            TellInfo6.show();
                                         }
                                     });
-                                    AlertDialog NEXT = See.create();
-                                    NEXT.show();
+                                    AlertDialog TellInfo5 = See.create();
+                                    TellInfo5.setCancelable(false);
+                                    TellInfo5.show();
                                 }
                             });
-                         AlertDialog TIPS = BALANCE.create();
-                         TIPS.show();
+                         AlertDialog TellInfo4 = BALANCE.create();
+                         TellInfo4.setCancelable(false);
+                         TellInfo4.show();
                         }
                     });
-                    AlertDialog TellInfo = Success.create();
-                    TellInfo.show();
+                    AlertDialog TellInfo3 = Success.create();
+                    TellInfo3.setCancelable(false);
+                    TellInfo3.show();
 
 
                     /*Intent Do = new Intent(DeviceControlActivity.this,middlePlace.class);
